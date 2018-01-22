@@ -6,7 +6,7 @@ ENV MECAB_DIC_PATH=/usr/lib/mecab/dic/neologd
 
 # dependencies
 RUN set -x && apk add --no-cache git wget bash build-base curl file openssl perl sudo
-RUN mkdir -p ${MECAB_DIC_PATH} ${IGO_DIC_PATH}
+RUN mkdir -p ${MECAB_DIC_PATH}
 
 # mecab
 WORKDIR ${MECAB_WORK}
