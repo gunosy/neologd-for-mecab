@@ -1,1 +1,1 @@
-
+# neologd-for-mecab
