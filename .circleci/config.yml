@@ -1,8 +1,8 @@
 version: 2
-    
-jobs:   
+
+jobs:
   build:
-    working_directory: ~/workspace        
+    working_directory: ~/workspace
     docker:
       - image: docker:18.03-git
     steps:
@@ -21,13 +21,13 @@ jobs:
               docker tag gunosy/neologd-for-mecab gunosy/neologd-for-mecab:latest
               docker push gunosy/neologd-for-mecab:latest
             fi
-            
+
 workflows:
   version: 2
   workflow:
     triggers:
       - schedule:
-          cron: "0 0 * * 2,5" 
+          cron: "0 0 * * 2,5"
           filters:
             branches:
               only:
