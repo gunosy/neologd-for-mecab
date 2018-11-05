@@ -10,16 +10,16 @@ jobs:
       - setup_remote_docker
       - run:
           command: |
-            docker build -t gunosy/neologd-for-mecab .
+            docker build -t quay.io/gunosy/neologd-for-mecab .
       - deploy:
           command: |
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
               export TAG=`date +%Y.%m.%d`
-              docker login -u "$DOCKER_HUB_USER" -p "$DOCKER_HUB_PASSWORD"
-              docker tag gunosy/neologd-for-mecab gunosy/neologd-for-mecab:"$TAG"
-              docker push gunosy/neologd-for-mecab:"$TAG"
-              docker tag gunosy/neologd-for-mecab gunosy/neologd-for-mecab:latest
-              docker push gunosy/neologd-for-mecab:latest
+              docker login -u "$QUAY_IO_USERNAME" -p "$QUAY_IO_PASSWORD"
+              docker tag quay.io/gunosy/neologd-for-mecab quay.io/gunosy/neologd-for-mecab:"$TAG"
+              docker push quay.io/gunosy/neologd-for-mecab:"$TAG"
+              docker tag quay.io/gunosy/neologd-for-mecab quay.io/gunosy/neologd-for-mecab:latest
+              docker push quay.io/gunosy/neologd-for-mecab:latest
             fi
 
 workflows:
