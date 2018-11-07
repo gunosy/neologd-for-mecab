@@ -6,49 +6,30 @@ docker: &docker
     - image: docker:18.03-git
 
 jobs:
-  build:
+  build_and_push_image_to_dockerhub:
     <<: *docker
     steps:
       - checkout
       - setup_remote_docker
       - run:
           command: |
-            docker build -t gunosy/neologd-for-mecab .
-            mkdir -p docker-cache
-            docker save -o docker-cache/neologd-for-mecab.tar gunosy/neologd-for-mecab
-      - save_cache:
-          key: docker_cache
-          paths:
-            - docker-cache
-
-  push_image_to_dockerhub:
-    <<: *docker
-    steps:
-      - restore_cache:
-          keys:
-            - docker-cache
-      - setup_remote_docker
-      - run:
-          command: |
               export TAG=`date +%Y.%m.%d`
-              docker load < docker-cache/neologd-for-mecab.tar
+              docker build -t gunosy/neologd-for-mecab .
               docker login -u "$DOCKER_HUB_USER" -p "$DOCKER_HUB_PASSWORD"
               docker tag gunosy/neologd-for-mecab gunosy/neologd-for-mecab:"$TAG"
               docker push gunosy/neologd-for-mecab:"$TAG"
               docker tag gunosy/neologd-for-mecab gunosy/neologd-for-mecab:latest
               docker push gunosy/neologd-for-mecab:latest
 
-  push_image_to_quay:
+  build_and_push_image_to_quay:
     <<: *docker
     steps:
-      - restore_cache:
-          keys:
-            - docker-cache
+      - checkout
       - setup_remote_docker
       - run:
           command: |
               export TAG=`date +%Y.%m.%d`
-              docker load < docker-cache/neologd-for-mecab.tar
+              docker build -t quay.io/gunosy/neologd-for-mecab .
               docker login -u "$QUAY_IO_USERNAME" -p "$QUAY_IO_PASSWORD"
               docker tag quay.io/gunosy/neologd-for-mecab quay.io/gunosy/neologd-for-mecab:"$TAG"
               docker push quay.io/gunosy/neologd-for-mecab:"$TAG"
@@ -66,17 +47,12 @@ workflows:
               only:
                 - master
     jobs:
-      - build
-      - push_image_to_dockerhub:
-          requires:
-            - build
+      - build_and_push_image_to_dockerhub:
           filters:
             branches:
               only:
                 - master
-      - push_image_to_quay:
-          requires:
-            - build
+      - build_and_push_image_to_quay:
           filters:
             branches:
               only:
