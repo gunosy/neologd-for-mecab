@@ -1,37 +1,59 @@
 version: 2
-    
-jobs:   
-  build:
-    working_directory: ~/workspace        
-    docker:
-      - image: docker:18.03-git
+
+docker: &docker
+  working_directory: ~/workspace
+  docker:
+    - image: docker:18.03-git
+
+jobs:
+  build_and_push_image_to_dockerhub:
+    <<: *docker
     steps:
       - checkout
       - setup_remote_docker
       - run:
           command: |
-            docker build -t gunosy/neologd-for-mecab .
-      - deploy:
-          command: |
-            if [ "${CIRCLE_BRANCH}" == "master" ]; then
               export TAG=`date +%Y.%m.%d`
+              docker build -t gunosy/neologd-for-mecab .
               docker login -u "$DOCKER_HUB_USER" -p "$DOCKER_HUB_PASSWORD"
               docker tag gunosy/neologd-for-mecab gunosy/neologd-for-mecab:"$TAG"
               docker push gunosy/neologd-for-mecab:"$TAG"
               docker tag gunosy/neologd-for-mecab gunosy/neologd-for-mecab:latest
               docker push gunosy/neologd-for-mecab:latest
-            fi
-            
+
+  build_and_push_image_to_quay:
+    <<: *docker
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          command: |
+              export TAG=`date +%Y.%m.%d`
+              docker build -t quay.io/gunosy/neologd-for-mecab .
+              docker login -u "$QUAY_IO_USERNAME" -p "$QUAY_IO_PASSWORD"
+              docker tag quay.io/gunosy/neologd-for-mecab quay.io/gunosy/neologd-for-mecab:"$TAG"
+              docker push quay.io/gunosy/neologd-for-mecab:"$TAG"
+              docker tag quay.io/gunosy/neologd-for-mecab quay.io/gunosy/neologd-for-mecab:latest
+              docker push quay.io/gunosy/neologd-for-mecab:latest
+
 workflows:
   version: 2
   workflow:
     triggers:
       - schedule:
-          cron: "0 0 * * 2,5" 
+          cron: "0 0 * * 2,5"
           filters:
             branches:
               only:
                 - master
     jobs:
-      - build
-
+      - build_and_push_image_to_dockerhub:
+          filters:
+            branches:
+              only:
+                - master
+      - build_and_push_image_to_quay:
+          filters:
+            branches:
+              only:
+                - master
