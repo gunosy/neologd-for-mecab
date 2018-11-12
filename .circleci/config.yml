@@ -1,13 +1,14 @@
-version: 2
+version: 2.1
 
-docker: &docker
-  working_directory: ~/workspace
+executors:
   docker:
-    - image: docker:18.03-git
+    working_directory: ~/workspace
+    docker:
+      - image: docker:18.03-git
 
 jobs:
   build_and_push_image_to_dockerhub:
-    <<: *docker
+    executor: docker
     steps:
       - checkout
       - setup_remote_docker
@@ -22,7 +23,7 @@ jobs:
               docker push gunosy/neologd-for-mecab:latest
 
   build_and_push_image_to_quay:
-    <<: *docker
+    executor: docker
     steps:
       - checkout
       - setup_remote_docker
