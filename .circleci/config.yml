@@ -1,40 +1,61 @@
-version: 2
+version: 2.1
 
-docker: &docker
-  working_directory: ~/workspace
+executors:
   docker:
-    - image: docker:18.03-git
+    working_directory: ~/workspace
+    docker:
+      - image: docker:18.03-git
+
+commands:
+  docker_build:
+    description: Push image to registory
+    parameters:
+      repository:
+        type: string
+    steps:
+      - run:
+          command: docker build -t << parameters.repository >> .
+
+  docker_push:
+    description: Push image to registory
+    parameters:
+      repository:
+        type: string
+    steps:
+      - run:
+          command: |
+            export TAG=`date +%Y.%m.%d`
+            docker tag << parameters.repository >> << parameters.repository >>:${TAG}
+            docker push << parameters.repository >>:${TAG}
+            docker tag << parameters.repository >> << parameters.repository >>:latest
+            docker push << parameters.repository >>:latest
 
 jobs:
   build_and_push_image_to_dockerhub:
-    <<: *docker
+    executor: docker
     steps:
       - checkout
       - setup_remote_docker
       - run:
-          command: |
-              export TAG=`date +%Y.%m.%d`
-              docker build -t gunosy/neologd-for-mecab .
-              docker login -u "$DOCKER_HUB_USER" -p "$DOCKER_HUB_PASSWORD"
-              docker tag gunosy/neologd-for-mecab gunosy/neologd-for-mecab:"$TAG"
-              docker push gunosy/neologd-for-mecab:"$TAG"
-              docker tag gunosy/neologd-for-mecab gunosy/neologd-for-mecab:latest
-              docker push gunosy/neologd-for-mecab:latest
+          name: docker login
+          command: docker login -u "$DOCKER_HUB_USER" -p "$DOCKER_HUB_PASSWORD"
+      - docker_build:
+          repository: gunosy/neologd-for-mecab
+      - docker_push:
+          repository: gunosy/neologd-for-mecab
 
   build_and_push_image_to_quay:
-    <<: *docker
+    executor: docker
     steps:
       - checkout
       - setup_remote_docker
       - run:
-          command: |
-              export TAG=`date +%Y.%m.%d`
-              docker build -t quay.io/gunosy/neologd-for-mecab .
-              docker login -u "$QUAY_IO_USERNAME" -p "$QUAY_IO_PASSWORD"
-              docker tag quay.io/gunosy/neologd-for-mecab quay.io/gunosy/neologd-for-mecab:"$TAG"
-              docker push quay.io/gunosy/neologd-for-mecab:"$TAG"
-              docker tag quay.io/gunosy/neologd-for-mecab quay.io/gunosy/neologd-for-mecab:latest
-              docker push quay.io/gunosy/neologd-for-mecab:latest
+          name: docker login
+          command: docker login quay.io -u "$QUAY_IO_USERNAME" -p "$QUAY_IO_PASSWORD"
+      - docker_build:
+          repository: quay.io/gunosy/neologd-for-mecab
+      - docker_push:
+          repository: quay.io/gunosy/neologd-for-mecab
 
 workflows:
   version: 2
