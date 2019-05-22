@@ -44,19 +44,6 @@ jobs:
       - docker_push:
           repository: gunosy/neologd-for-mecab
 
-  build_and_push_image_to_quay:
-    executor: docker
-    steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: docker login
-          command: docker login quay.io -u "$QUAY_IO_USERNAME" -p "$QUAY_IO_PASSWORD"
-      - docker_build:
-          repository: quay.io/gunosy/neologd-for-mecab
-      - docker_push:
-          repository: quay.io/gunosy/neologd-for-mecab
-
 workflows:
   version: 2
   workflow:
@@ -69,11 +56,6 @@ workflows:
                 - master
     jobs:
       - build_and_push_image_to_dockerhub:
-          filters:
-            branches:
-              only:
-                - master
-      - build_and_push_image_to_quay:
           filters:
             branches:
               only:
