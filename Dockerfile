@@ -22,7 +22,7 @@ RUN git clone --depth 1 https://github.com/neologd/mecab-ipadic-neologd.git ${NE
 RUN set -eu; \
     files="bin/install-mecab-ipadic-neologd libexec/make-mecab-ipadic-neologd.sh"; \
     sed -i -E 's/curl (-k )?--insecure /curl /' ${files}; \
-    if grep -nE -- 'curl .*(--insecure| -k )' ${files}; then exit 1; fi
+    if grep -rnE -- '--insecure|--no-check-certificate|curl[^|;&]* -[[:alpha:]]*k([[:space:]]|$)' bin libexec; then exit 1; fi
 
 RUN ./bin/install-mecab-ipadic-neologd -n -y -p ${MECAB_DIC_PATH}
 
